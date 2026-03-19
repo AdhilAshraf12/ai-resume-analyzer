@@ -18,26 +18,31 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleAnalyze() {
-    setLoading(true);
-    setResult(null);
-    setError(null);
-
+  async function handleAnalyze() {                                               
+    if (!resume.trim() || !jobDescription.trim()) {
+      setError("Please fill in both your resume and the job description.");      
+      return;                                                                    
+    }                                                                            
+                                                                                 
+    setLoading(true);                                                            
+    setResult(null);                                                             
+    setError(null);                                                              
+                  
     const response = await fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ resume, jobDescription }),
+      body: JSON.stringify({ resume, jobDescription }),                          
     });
-
+                                                                                 
     const data = await response.json();
 
-    if (!response.ok || data.error) {
+    if (!response.ok || data.error) {                                            
       setError(data.error ?? "Something went wrong.");
-    } else {
+    } else {                                                                     
       setResult(data);
-    }
+    }                                                                            
     setLoading(false);
-  }
+  } 
 
   return (
     <main className="min-h-screen bg-gray-50 py-12 px-4">
@@ -84,9 +89,19 @@ export default function Home() {
           <button
             onClick={handleAnalyze}
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 rounded-lg transition-colors"
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
           >
-            {loading ? "Analyzing..." : "Analyze Match"}
+            {loading ? (
+              <>
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Analyzing...
+              </>
+            ) : (
+              "Analyze Match"
+            )}
           </button>
         </div>
 
@@ -104,7 +119,11 @@ export default function Home() {
             {/* Score */}
             <div className="text-center">
               <p className="text-sm text-gray-500 mb-1">Match Score</p>
-              <p className="text-6xl font-bold text-blue-600">{result.score}%</p>
+                            <p className={`text-6xl font-bold ${
+                result.score >= 75 ? "text-green-600" :
+                result.score >= 50 ? "text-yellow-500" :
+                "text-red-500"
+              }`}>{result.score}%</p>
             </div>
 
             {/* Keywords */}
